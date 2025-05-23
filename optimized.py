@@ -6,6 +6,7 @@ import os
 
 def load_actions(path, scale=100):
     actions = []
+    isolated_actions = 0
     with open(path, encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=",")
         next(reader)
@@ -15,12 +16,13 @@ def load_actions(path, scale=100):
             name, price_s, pct_s = row[:3]
             price = float(price_s); pct = float(pct_s)
             if price <= 0.0:
+                isolated_actions += 1
                 continue
             profit_val = price * pct / 100.0
             cost_int   = int(round(price * scale))
             profit_int = int(round(profit_val * scale))
             actions.append((name, cost_int, profit_int, price, profit_val))
-    return actions
+    return actions, isolated_actions
 
 def knapsack_dp_2d(actions, budget_float, scale=100):
     """
@@ -69,16 +71,18 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    actions = load_actions(file_name, scale=100)
+    actions, isolated_actions = load_actions(file_name, scale=100)
     budget  = 500.0
 
     selected, cost, profit = knapsack_dp_2d(actions, budget, scale=100)
 
     temps = time.time() - start
-    print(f"temps d'exécution       : {temps:.3f}s")
-    print(f"Budget disponible       : {budget:.2f}€")
-    print(f"Coût total sélectionné  : {cost:.2f}€")
-    print(f"Profit total attendu    : {profit:.2f}€\n")
+    print(f"temps d'exécution        : {temps:.3f}s")
+    print(f"Budget disponible        : {budget:.2f}€")
+    print(f"Coût total sélectionné   : {cost:.2f}€")
+    print(f"Profit total attendu     : {profit:.2f}€\n")
+    print(f"Nombre d'actions traités : {len(actions)}")
+    print(f"Nombre d'actions ignorées: {isolated_actions}\n")
     print("Actions retenues :")
     for name, cost_f, profit_f in selected:
         print(f" - {name} | coût = {cost_f:.2f} € | profit = {profit_f:.2f} €")
